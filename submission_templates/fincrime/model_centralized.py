@@ -16,58 +16,70 @@ from torch.utils.data import DataLoader
 class CentralizedModel:
     def __init__(self):
         self.xgb = XGBClassifier(n_estimators=100, max_depth = 7, base_score=0.01)
-        self.lg =  LogisticRegression(random_state = 0)
+        #self.lg =  LogisticRegression(random_state = 0)
         self.nn = Net_lg()
-        #self.device = device
+        
+        # dict saved for pre-processing the test set
+        #self.sender_hour_frequency = {}
+        #self.currency_freq = {}
+        #self.currency_avg = {}
 
-    def pre_process_swift(self, swift_data):
-        # Hour
-        swift_data["hour"] = swift_data["Timestamp"].dt.hour
-
+    def pre_process_swift(self, swift_train):
+        #pre-processing number 1
         # Hour frequency for each sender
-        senders = swift_data["Sender"].unique()
-        swift_data["sender_hour"] = swift_data["Sender"] + swift_data["hour"].astype(str)
+        swift_train["hour"] = swift_train["Timestamp"].dt.hour
+        senders = swift_train["Sender"].unique()
+        swift_train["sender_hour"] = swift_train["Sender"] + swift_train["hour"].astype(str)
         sender_hour_frequency = {}
         for s in senders:
-            sender_rows = swift_data[swift_data["Sender"] == s]
+            sender_rows = swift_train[swift_train["Sender"] == s]
             for h in range(24):
                 sender_hour_frequency[s + str(h)] = len(sender_rows[sender_rows["hour"] == h])
-
-        swift_data["sender_hour_freq"] = swift_data["sender_hour"].map(sender_hour_frequency)
-
-        # Sender-Currency Frequency and Average Amount per Sender-Currency
-        swift_data["sender_currency"] = swift_data["Sender"] + swift_data["InstructedCurrency"]
-
-        sender_currency_freq = {}
-        sender_currency_avg = {}
-
+        swift_train["sender_hour_freq"] = swift_train["sender_hour"].map(sender_hour_frequency)
+        
+        #pre-processing number 2
+        currency_freq = {}
+        currency_avg = {}
         for sc in set(
-            list(swift_data["sender_currency"].unique()) #+ list(swift_test["sender_currency"].unique())
+            list(swift_train["InstructedCurrency"].unique())
         ):
-            sender_currency_freq[sc] = len(swift_data[swift_data["sender_currency"] == sc])
-            sender_currency_avg[sc] = swift_data[swift_data["sender_currency"] == sc][
+            currency_freq[sc] = len(swift_train[swift_train["InstructedCurrency"] == sc])
+            currency_avg[sc] = swift_train[swift_train["InstructedCurrency"] == sc][
                 "InstructedAmount"
             ].mean()
 
-        swift_data["sender_currency_freq"] = swift_data["sender_currency"].map(sender_currency_freq)
+        swift_train["currency_freq"] = swift_train["InstructedCurrency"].map(currency_freq)
+        swift_train["currency_amount_average"] = swift_train["InstructedCurrency"].map(currency_avg)
 
-        swift_data["sender_currency_amount_average"] = swift_data["sender_currency"].map(
-            sender_currency_avg
-        )
+        #pre-processing number 3
+        swift_train["receiver_currency"] = swift_train["Receiver"] + swift_train["InstructedCurrency"]
+        receiver_currency_freq = {}
+        receiver_currency_avg = {}
 
-        # Sender-Receiver Frequency
-        swift_data["sender_receiver"] = swift_data["Sender"] + swift_data["Receiver"]
+        for sc in set(
+            list(swift_train["receiver_currency"].unique())
+        ):
+            receiver_currency_freq[sc] = len(swift_train[swift_train["receiver_currency"] == sc])
+            receiver_currency_avg[sc] = swift_train[swift_train["receiver_currency"] == sc][
+                "InstructedAmount"
+            ].mean()
 
+        swift_train["receiver_currency_freq"] = swift_train["receiver_currency"].map(receiver_currency_freq)
+        swift_train["receiver_currency_amount_average"] = swift_train["receiver_currency"].map(receiver_currency_avg)
+
+        #pre-processing number 4
+        #Sender-Receiver Frequency
+        swift_train["sender_receiver"] = swift_train["Sender"] + swift_train["Receiver"]
         sender_receiver_freq = {}
 
         for sr in set(
-            list(swift_data["sender_receiver"].unique()) #+ list(swift_test["sender_receiver"].unique())
+            list(swift_train["sender_receiver"].unique())
         ):
-            sender_receiver_freq[sr] = len(swift_data[swift_data["sender_receiver"] == sr])
+            sender_receiver_freq[sr] = len(swift_train[swift_train["sender_receiver"] == sr])
 
-        swift_data["sender_receiver_freq"] = swift_data["sender_receiver"].map(sender_receiver_freq)
+        swift_train["sender_receiver_freq"] = swift_train["sender_receiver"].map(sender_receiver_freq)        
 
-        return swift_data
+        return swift_train
     
     def combine_swift_and_bank(self, swift_data, bank_data):
         # combine the table and add flag features columns
@@ -115,7 +127,7 @@ class CentralizedModel:
             "InstructedCurrency",
             "Timestamp",
             "sender_hour",
-            "sender_currency",
+            "receiver_currency",
             "sender_receiver",
             "Bank_x",
             "Bank_y",

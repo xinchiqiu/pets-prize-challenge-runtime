@@ -5,6 +5,7 @@ import pandas as pd
 import torch
 from .model_centralized import CentralizedModel
 
+
 def fit(
     swift_data_path: Path,
     bank_data_path: Path,
@@ -30,11 +31,8 @@ def fit(
     """
 
     logger.info("read the table")
-    swift_train_ori = pd.read_csv(swift_data_path, index_col="MessageId")
+    swift_train = pd.read_csv(swift_data_path, index_col="MessageId")
     bank_train = pd.read_csv(bank_data_path)
-
-    swift_train_ori.to_pickle("swift_train.pkl")
-    swift_train = pd.read_pickle("swift_train.pkl")
     swift_train["Timestamp"] = swift_train["Timestamp"].astype("datetime64[ns]")
 
     # init centralized model
@@ -44,14 +42,6 @@ def fit(
 
     logger.info("pre-processing the swift dataset")
     swift_train = centralized_model.pre_process_swift(swift_train)
-
-    ##### uncomment below if we dont want to go through the preprocessing to make it faster, and comment everything above
-    #swift_train = pd.read_json('/datasets/PET/swift_post_processed_train.json')
-    #bank_train = pd.read_csv(bank_data_path)
-    #logger.info("initialized the model")
-    #device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    #centralized_model = CentralizedModel()
-    ##### end of bit
 
     logger.info("Combine with bank dataset")
     combine_train = centralized_model.combine_swift_and_bank(swift_train, bank_train)
@@ -111,11 +101,8 @@ def predict(
     """
     # read the table
     logger.info("Preparing test data...")
-    swift_test_ori = pd.read_csv(swift_data_path, index_col="MessageId")
+    swift_test = pd.read_csv(swift_data_path, index_col="MessageId")
     bank_test = pd.read_csv(bank_data_path)
-
-    swift_test_ori.to_pickle("swift_train.pkl")
-    swift_test = pd.read_pickle("swift_train.pkl")
     swift_test["Timestamp"] = swift_test["Timestamp"].astype("datetime64[ns]")
 
     logger.info("Initialized the model")
@@ -124,15 +111,6 @@ def predict(
 
     logger.info("pre-processing swift test")
     swift_test = centralized_model.pre_process_swift(swift_test)
-
-
-    ##### uncomment below if we dont want to go through the preprocessing to make it faster, and comment everything above
-    #swift_test = pd.read_json('/datasets/PET/swift_post_processed_test.json')
-    #bank_test = pd.read_csv(bank_data_path)
-    #logger.info("Initialized the model")
-    #device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    #centralized_model = CentralizedModel()
-    ##### end of bit
 
     logger.info("Combine datasets")
     combine_test = centralized_model.combine_swift_and_bank(swift_test, bank_test)
