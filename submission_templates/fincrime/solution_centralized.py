@@ -47,7 +47,8 @@ def fit(
     combine_train = centralized_model.combine_swift_and_bank(swift_train, bank_train)
 
     logger.info("Get X_train and Y_train")
-    X_train, Y_train = centralized_model.transform_and_normalized(combine_train)
+    X_train = centralized_model.transform_and_normalized_X(combine_train)
+    Y_train = centralized_model.transform_and_normalized_Y(combine_train)
 
     logger.info("Fit SWIFT XGBoost")
     X_train_swift = centralized_model.get_X_swift(X_train)
@@ -59,7 +60,7 @@ def fit(
     
     logger.info("get the trainset and dataloader for NN")
     X_train_lg = centralized_model.get_X_logistic_regression(X_train, pred_proba_xgb_train)
-    train_dataloader = centralized_model.get_dataloader_for_NN(X_train_lg, Y_train)
+    train_dataloader = centralized_model.get_trainloader_for_NN(X_train_lg, Y_train)
     
     # choose one, either fit the logistic regression, or the 1 layer neural network
     #logger.info("fit for logistic regression")
@@ -116,7 +117,7 @@ def predict(
     combine_test = centralized_model.combine_swift_and_bank(swift_test, bank_test)
 
     logger.info("transform and normalized the datasets")
-    X_test, Y_test = centralized_model.transform_and_normalized(combine_test)
+    X_test = centralized_model.transform_and_normalized_X(combine_test)
     X_test_swift = centralized_model.get_X_swift(X_test)
 
     logger.info("Loading models...")
@@ -127,7 +128,7 @@ def predict(
     
     # get trainset for logistic regression
     X_test_lg = centralized_model.get_X_logistic_regression(X_test, pred_proba_xgb_test)
-    test_dataloader = centralized_model.get_dataloader_for_NN(X_test_lg, Y_test)
+    test_dataloader = centralized_model.get_testloader_for_NN(X_test_lg)
     
     logger.info("Predict with logistic regression or NN")
     preds = centralized_model.test_NN(test_dataloader,device)
