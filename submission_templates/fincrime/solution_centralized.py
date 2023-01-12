@@ -44,10 +44,10 @@ def fit(
     swift_train = centralized_model.pre_process_swift(swift_train)
 
     logger.info("Combine with bank dataset")
-    combine_train = centralized_model.combine_swift_and_bank(swift_train, bank_train)
+    combine_train = centralized_model.combine_swift_and_bank(swift_train, bank_train, False)
 
     logger.info("Get X_train and Y_train")
-    X_train = centralized_model.transform_and_normalized_X(combine_train)
+    X_train = centralized_model.transform_and_normalized_X(combine_train, False)
     Y_train = centralized_model.transform_and_normalized_Y(combine_train)
 
     logger.info("Fit SWIFT XGBoost")
@@ -114,10 +114,10 @@ def predict(
     swift_test = centralized_model.pre_process_swift(swift_test)
 
     logger.info("Combine datasets")
-    combine_test = centralized_model.combine_swift_and_bank(swift_test, bank_test)
+    combine_test = centralized_model.combine_swift_and_bank(swift_test, bank_test, True)
 
     logger.info("transform and normalized the datasets")
-    X_test = centralized_model.transform_and_normalized_X(combine_test)
+    X_test = centralized_model.transform_and_normalized_X(combine_test, True)
     X_test_swift = centralized_model.get_X_swift(X_test)
 
     logger.info("Loading models...")

@@ -81,7 +81,7 @@ class CentralizedModel:
 
         return swift_train
     
-    def combine_swift_and_bank(self, swift_data, bank_data):
+    def combine_swift_and_bank(self, swift_data, bank_data, if_test):
         # combine the table and add flag features columns
         combine = (
         swift_data.reset_index().rename(columns={'index': 'MessageId'})
@@ -130,17 +130,27 @@ class CentralizedModel:
         
         
         # rearrange
-        cols = ['SettlementAmount', 'InstructedAmount', 'Label', 'hour',
+        if if_test:
+            cols = ['SettlementAmount', 'InstructedAmount', 'hour',
                 'sender_hour_freq', 'currency_freq','currency_amount_average', 
                 'receiver_currency_freq','receiver_currency_amount_average','sender_receiver_freq',
                 'OF_0.0', 'OF_1.0', 'OF_2.0', 'OF_3.0', 'OF_4.0','OF_5.0', 'OF_6.0', 'OF_7.0', 'OF_8.0', 'OF_9.0', 'OF_10.0', 'OF_11.0', 'OF_12.0','BF_0.0','BF_1.0', 'BF_2.0', 'BF_3.0', 'BF_4.0', 'BF_5.0', 'BF_6.0', 'BF_7.0', 'BF_8.0',
                 'BF_9.0', 'BF_10.0', 'BF_11.0','BF_12.0']
+        else:
+            cols = ['SettlementAmount', 'InstructedAmount', 'Label', 'hour',
+                    'sender_hour_freq', 'currency_freq','currency_amount_average', 
+                    'receiver_currency_freq','receiver_currency_amount_average','sender_receiver_freq',
+                    'OF_0.0', 'OF_1.0', 'OF_2.0', 'OF_3.0', 'OF_4.0','OF_5.0', 'OF_6.0', 'OF_7.0', 'OF_8.0', 'OF_9.0', 'OF_10.0', 'OF_11.0', 'OF_12.0','BF_0.0','BF_1.0', 'BF_2.0', 'BF_3.0', 'BF_4.0', 'BF_5.0', 'BF_6.0', 'BF_7.0', 'BF_8.0',
+                    'BF_9.0', 'BF_10.0', 'BF_11.0','BF_12.0']
         combine = combine[cols]
 
         return combine
 
-    def transform_and_normalized_X(self, combine):
-        X = combine.drop(["Label"], axis=1).values
+    def transform_and_normalized_X(self, combine, if_test):
+        if if_test:
+            X = combine.values
+        else:
+            X = combine.drop(["Label"], axis=1).values
 
         # Normalize
         scaler = StandardScaler()
