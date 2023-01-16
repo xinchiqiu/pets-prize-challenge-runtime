@@ -52,8 +52,9 @@ def fit(
 
     logger.info("Fit SWIFT XGBoost")
     X_train_swift = centralized_model.get_X_swift(X_train)
-
     centralized_model.xgb.fit(X_train_swift,Y_train)
+    #xgb = XGBClassifier(n_estimators=100, max_depth = 7, base_score=0.001)
+    #xgb.fit(X_train_swift,Y_train)
 
     logger.info("Get probability from XGBoost")
     pred_proba_xgb_train = centralized_model.xgb.predict_proba(X_train_swift)[:, 1]
@@ -61,10 +62,6 @@ def fit(
     logger.info("get the trainset and dataloader for NN")
     X_train_lg = centralized_model.get_X_logistic_regression(X_train, pred_proba_xgb_train)
     train_dataloader = centralized_model.get_trainloader_for_NN(X_train_lg, Y_train)
-    
-    # choose one, either fit the logistic regression, or the 1 layer neural network
-    #logger.info("fit for logistic regression")
-    #centralized_model.lg.fit(X_train_lg,Y_train)
 
     logger.info("fit for the 1 layer neural network")
     _, _ = centralized_model.train_NN(train_loader =train_dataloader, device = device)
@@ -132,11 +129,9 @@ def predict(
     
     logger.info("Predict with logistic regression or NN")
     preds = centralized_model.test_NN(test_dataloader,device)
-    #preds = centralized_model.lg.predict_proba(X_test_lg)[:, 1] #this is get the probability prediction
 
     # convert to pandas series
     final_preds = pd.Series(preds, index=combine_test.index)
-    # need to check here, the dtype is O, but need to be float64
 
     # this part is from the example: to write the score
     preds_format_df = pd.read_csv(preds_format_path, index_col="MessageId")

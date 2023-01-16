@@ -10,19 +10,16 @@ import os
 import pickle
 import torch
 import torch.nn as nn
-from torch.utils.data import Dataset
-from torch.utils.data import DataLoader
+from torch.utils.data import Dataset, DataLoader
+
+
 
 class CentralizedModel:
     def __init__(self):
-        self.xgb = XGBClassifier(n_estimators=100, max_depth = 7, base_score=0.01)
-        #self.lg =  LogisticRegression(random_state = 0)
+        self.xgb = XGBClassifier(n_estimators=300, max_depth = 7, base_score=0.01)
         self.nn = Net_lg()
         
-        # dict saved for pre-processing the test set
-        #self.sender_hour_frequency = {}
-        #self.currency_freq = {}
-        #self.currency_avg = {}
+
 
     def pre_process_swift(self, swift_train):
         #pre-processing number 1
@@ -177,7 +174,7 @@ class CentralizedModel:
             temp = np.append(temp,pred_proba_xgb[idx])
             X_lg.append(temp)
         X_lg = np.asarray(X_lg)
-        X_lg = np.nan_to_num(X_lg, nan=12)
+
         return X_lg
     
     def get_trainloader_for_NN(self,X_lg, Y):
@@ -187,7 +184,7 @@ class CentralizedModel:
 
     def get_testloader_for_NN(self,X_lg):
         set = TestData(torch.FloatTensor(X_lg))
-        dataloader = DataLoader(set, batch_size=32)
+        dataloader = DataLoader(set, batch_size=32, shuffle=False)
         return dataloader
     
     def train_NN(self, train_loader, device):
@@ -221,48 +218,33 @@ class CentralizedModel:
     
     def test_NN(self, test_loader, device):
         self.nn.to(device)
-        criterion = nn.BCELoss()
         y_proba_list = []
         self.nn.eval()
         with torch.no_grad():
             for _, (data) in enumerate(test_loader):
                 data = data.to(device)
-                #target = target.unsqueeze(1)
                 output = self.nn(data)
-                #loss = criterion(output, target)
-
-                # get statistics
                 y_proba_list.extend(output.detach().cpu().numpy())
         return y_proba_list
 
     def save(self, path):
         xgb_path = os.path.join(path, "centralized_xgboost.pkl")
-        #lg_path = os.path.join(path,"centralized_lg.pkl")
-        nn_path = os.path.join(path,"centralized_nn.pkl")
-        #joblib.dump(self.xgb, xgb_path)
-        #joblib.dump(self.lg, lg_path)
+        nn_path = os.path.join(path,"centralized_nn.pt")
+
         with open(xgb_path, 'wb') as f:
             pickle.dump(self.xgb, f)
-        #with open(lg_path, 'wb') as f:
-        #    pickle.dump(self.lg, f)  
-        with open(nn_path, 'wb') as f:
-            pickle.dump(self.nn, f) 
+        torch.save(self.nn, nn_path)
     
 
     @classmethod
     def load(cls, path):
         inst = cls()
-        #inst.pipeline = joblib.load(path)
         xgb_path = os.path.join(path,"centralized_xgboost.pkl")
-        #lg_path = os.path.join(path,"centralized_lg.pkl")
-        nn_path = os.path.join(path,"centralized_nn.pkl")
+        nn_path = os.path.join(path,"centralized_nn.pt")
 
         with open(xgb_path, 'rb') as f:
             inst.xgb = pickle.load(f)
-        #with open(lg_path, 'rb') as f:
-        #    inst.lg = pickle.load(f)
-        with open(nn_path, 'rb') as f:
-            inst.lg = pickle.load(f)
+        inst.nn = torch.load(nn_path)
         return inst
 
 
