@@ -136,10 +136,12 @@ def predict(
 
     # convert to pandas series
     final_preds = pd.Series(preds, index=combine_test.index)
+    # need to check here, the dtype is O, but need to be float64
 
     # this part is from the example: to write the score
     preds_format_df = pd.read_csv(preds_format_path, index_col="MessageId")
     preds_format_df["Score"] = preds_format_df.index.map(final_preds)
+    preds_format_df["Score"] = preds_format_df["Score"].astype(np.float64)
 
     logger.info("Writing out test predictions...")
     preds_format_df.to_csv(preds_dest_path)
