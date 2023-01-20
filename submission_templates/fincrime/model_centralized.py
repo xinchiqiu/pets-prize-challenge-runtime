@@ -261,13 +261,13 @@ def combine_swift_and_bank_new_test(swift_test, bank_train, need_label):
     combine_test_after = combine_test_after.drop(columns_to_drop, axis=1)
     if need_label:
         cols = ['SettlementAmount', 'InstructedAmount', 'Label', 'hour',
-        'sender_hour_freq', 'currency_freq','currency_amount_average', 'sender_receiver_freq', 'receiver_currency_amount_average','sender_receiver_freq','OF_0.0', 'OF_1.0', 'OF_2.0', 'OF_3.0', 'OF_4.0',
+        'sender_hour_freq', 'currency_freq','currency_amount_average', 'receiver_currency_freq', 'receiver_currency_amount_average','sender_receiver_freq','OF_0.0', 'OF_1.0', 'OF_2.0', 'OF_3.0', 'OF_4.0',
         'OF_5.0', 'OF_6.0', 'OF_7.0', 'OF_8.0', 'OF_9.0', 'OF_10.0', 'OF_11.0', 'OF_12.0','BF_0.0',
         'BF_1.0', 'BF_2.0', 'BF_3.0', 'BF_4.0', 'BF_5.0', 'BF_6.0', 'BF_7.0', 'BF_8.0',
         'BF_9.0', 'BF_10.0', 'BF_11.0','BF_12.0']
     else:
         cols = ['SettlementAmount', 'InstructedAmount', 'hour',
-        'sender_hour_freq', 'currency_freq','currency_amount_average', 'sender_receiver_freq', 'receiver_currency_amount_average','sender_receiver_freq','OF_0.0', 'OF_1.0', 'OF_2.0', 'OF_3.0', 'OF_4.0',
+        'sender_hour_freq', 'currency_freq','currency_amount_average', 'receiver_currency_freq', 'receiver_currency_amount_average','sender_receiver_freq','OF_0.0', 'OF_1.0', 'OF_2.0', 'OF_3.0', 'OF_4.0',
         'OF_5.0', 'OF_6.0', 'OF_7.0', 'OF_8.0', 'OF_9.0', 'OF_10.0', 'OF_11.0', 'OF_12.0','BF_0.0',
         'BF_1.0', 'BF_2.0', 'BF_3.0', 'BF_4.0', 'BF_5.0', 'BF_6.0', 'BF_7.0', 'BF_8.0',
         'BF_9.0', 'BF_10.0', 'BF_11.0','BF_12.0']
@@ -339,7 +339,7 @@ def combine_swift_and_bank_new(swift_train, bank_train):
     combine_after = combine_after.drop(columns_to_drop, axis=1)
 
     cols = ['SettlementAmount', 'InstructedAmount', 'Label', 'hour',
-       'sender_hour_freq', 'currency_freq','currency_amount_average', 'sender_receiver_freq', 'receiver_currency_amount_average','sender_receiver_freq','OF_0.0', 'OF_1.0', 'OF_2.0', 'OF_3.0', 'OF_4.0',
+       'sender_hour_freq', 'currency_freq','currency_amount_average', 'receiver_currency_freq', 'receiver_currency_amount_average','sender_receiver_freq','OF_0.0', 'OF_1.0', 'OF_2.0', 'OF_3.0', 'OF_4.0',
        'OF_5.0', 'OF_6.0', 'OF_7.0', 'OF_8.0', 'OF_9.0', 'OF_10.0', 'OF_11.0', 'OF_12.0','BF_0.0',
        'BF_1.0', 'BF_2.0', 'BF_3.0', 'BF_4.0', 'BF_5.0', 'BF_6.0', 'BF_7.0', 'BF_8.0',
        'BF_9.0', 'BF_10.0', 'BF_11.0','BF_12.0']
