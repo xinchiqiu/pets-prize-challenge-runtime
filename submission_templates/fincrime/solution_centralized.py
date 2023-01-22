@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import torch
 from .model_centralized import *
-
+from xgboost import XGBClassifier
 
 
 def fit(
